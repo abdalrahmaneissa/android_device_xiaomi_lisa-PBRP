@@ -29,6 +29,34 @@ PRODUCT_USE_DYNAMIC_PARTITIONS := true
 TARGET_SCREEN_HEIGHT := 2400
 TARGET_SCREEN_WIDTH := 1080
 
+# A/B
+AB_OTA_UPDATER := true
+ENABLE_VIRTUAL_AB := true
+BOARD_USES_RECOVERY_AS_BOOT := true
+AB_OTA_PARTITIONS += \
+    boot \
+    dtbo \
+    system \
+    system_ext \
+    product \
+    vendor \
+    vendor_boot \
+    odm \
+    vbmeta \
+    vbmeta_system \
+
+AB_OTA_POSTINSTALL_CONFIG += \
+    RUN_POSTINSTALL_system=true \
+    POSTINSTALL_PATH_system=system/bin/otapreopt_script \
+    FILESYSTEM_TYPE_system=ext4 \
+    POSTINSTALL_OPTIONAL_system=true
+
+# Boot control HAL
+PRODUCT_PACKAGES += \
+    bootctl \
+    bootctrl.lahaina.recovery \
+    android.hardware.boot@1.1-impl-qti.recovery
+
 # fastbootd
 PRODUCT_PACKAGES += \
     fastbootd \
