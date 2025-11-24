@@ -1,0 +1,31 @@
+# Decryption support for Qualcomm devices
+
+on early-init
+    # Set crypto properties
+    setprop ro.crypto.state encrypted
+    setprop ro.crypto.type file
+    setprop ro.boot.crypto_state encrypted
+
+on init
+    # FBE directories
+    mkdir /metadata/vold 0770 root system
+    mkdir /metadata/vold/metadata_encryption 0770 root system
+
+on fs
+    # Mount metadata partition for FBE keys
+    mkdir /metadata 0770 root system
+    mount ext4 /dev/block/bootdevice/by-name/metadata /metadata noatime,nosuid,nodev,discard
+
+on post-fs-data
+    # Ensure FBE directories exist with correct permissions
+    mkdir /metadata/vold 0770 root system
+    mkdir /metadata/vold/metadata_encryption 0770 root system
+    chmod 0700 /metadata/vold/metadata_encryption
+
+# Service for handling decryption
+service prepdecrypt /sbin/prepdecrypt.sh
+    class main
+    user root
+    group root
+    seclabel u:r:recovery:s0
+    oneshot
