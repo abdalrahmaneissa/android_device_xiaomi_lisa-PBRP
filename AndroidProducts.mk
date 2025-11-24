@@ -5,9 +5,4 @@
 #
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/pb_courbet.mk
-
-COMMON_LUNCH_CHOICES := \
-    pb_courbet-user \
-    pb_courbet-userdebug \
-    pb_courbet-eng
+    $(LOCAL_DIR)/pb_lisa.mk

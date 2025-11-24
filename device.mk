@@ -7,8 +7,23 @@
 # Inherit from the common Open Source product configuration
 $(call inherit-product, $(SRC_TARGET_DIR)/product/base.mk)
 
+# Enable updating of APEXes
+$(call inherit-product, $(SRC_TARGET_DIR)/product/updatable_apex.mk)
+
+# Enable virtual A/B OTA
+$(call inherit-product, $(SRC_TARGET_DIR)/product/virtual_ab_ota.mk)
+
+# Configure SDCard replacement functionality
+$(call inherit-product, $(SRC_TARGET_DIR)/product/emulated_storage.mk)
+
+# Installs gsi keys into ramdisk, to boot a developer GSI with verified boot.
+$(call inherit-product, $(SRC_TARGET_DIR)/product/gsi_keys.mk)
+
 # API levels
 PRODUCT_SHIPPING_API_LEVEL := 30
+
+# Partitions
+PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
 # Screen Density
 TARGET_SCREEN_HEIGHT := 2400
@@ -16,16 +31,18 @@ TARGET_SCREEN_WIDTH := 1080
 
 # fastbootd
 PRODUCT_PACKAGES += \
-    android.hardware.fastboot@1.1-impl-mock \
     fastbootd \
+    android.hardware.fastboot@1.1-impl-mock \
+
+# Encryption
+PRODUCT_PACKAGES += \
     qcom_decrypt \
     qcom_decrypt_fbe \
 
-# Partitions
-PRODUCT_USE_DYNAMIC_PARTITIONS := true
-
 # Soong namespaces
 PRODUCT_SOONG_NAMESPACES += \
+    $(LOCAL_PATH) \
+    hardware/qcom-caf/bootctrl \
     vendor/qcom/opensource/commonsys-intf/display
 
 # Display

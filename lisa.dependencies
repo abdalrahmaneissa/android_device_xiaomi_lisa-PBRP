@@ -1,0 +1,11 @@
+[
+  {
+    "repository": "hardware/qcom-caf/bootctrl",
+    "target_path": "hardware/qcom-caf/bootctrl"
+  },
+  
+  {
+    "repository": "vendor/qcom/opensource/commonsys-intf/display",
+    "target_path": "vendor/qcom/opensource/commonsys-intf/display"
+  }
+]
