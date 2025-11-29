@@ -25,6 +25,10 @@ PRODUCT_SHIPPING_API_LEVEL := 30
 # Partitions
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
+# MIUI Releasekey
+PRODUCT_EXTRA_RECOVERY_KEYS += \
+    device/xiaomi/lisa/recovery/root/system/etc/security/releasekey
+
 # Screen Density
 TARGET_SCREEN_HEIGHT := 2400
 TARGET_SCREEN_WIDTH := 1080

@@ -8,14 +8,14 @@
 $(call inherit-product, $(SRC_TARGET_DIR)/product/aosp_base.mk)
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_64_bit.mk)
 
-# Inherit some common PBRP stuff.
-$(call inherit-product, vendor/pb/config/common.mk)
+# Inherit some common TWRP stuff.
+$(call inherit-product, vendor/twrp/config/common.mk)
 
 # Inherit from lisa device
 $(call inherit-product, device/xiaomi/lisa/device.mk)
 
 # Device Products
-PRODUCT_NAME := pb_lisa
+PRODUCT_NAME := twrp_lisa
 PRODUCT_DEVICE := lisa
 PRODUCT_MODEL := Xiaomi 11 Lite 5G NE
 PRODUCT_BRAND := Xiaomi

@@ -5,4 +5,6 @@
 #
 
 PRODUCT_MAKEFILES := \
-    $(LOCAL_DIR)/pb_lisa.mk
+    $(LOCAL_DIR)/twrp_lisa.mk
+
+COMMON_LUNCH_CHOICES := twrp_lisa-eng

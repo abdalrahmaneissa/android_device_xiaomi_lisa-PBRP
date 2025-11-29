@@ -5,10 +5,12 @@
 #
 
 # Building with minimal manifest
-ENABLE_CPUSETS := true
-ENABLE_SCHEDBOOST := true
-TARGET_USES_64_BIT_BINDER := true
-TARGET_SUPPORTS_64_BIT_APPS := true
+BUILD_BROKEN_ELF_PREBUILT_PRODUCT_COPY_FILES := true
+BUILD_BROKEN_MISSING_REQUIRED_MODULES := true
+BUILD_BROKEN_PREBUILT_ELF_FILES := true
+BUILD_BROKEN_DUP_RULES := true
+TARGET_EXCLUDES_AUDIO_NN_HAL := true
+ALLOW_MISSING_DEPENDENCIES := true
 
 # Device Tree Path
 PRODUCT_RELEASE_NAME := lisa
@@ -127,6 +129,7 @@ TW_USE_TOOLBOX := true
 TW_INPUT_BLACKLIST := "hbtp_vm"
 TW_NO_SCREEN_TIMEOUT := true
 TW_DEFAULT_BRIGHTNESS := 600
+TW_MAX_BRIGHTNESS := 1200
 TW_BRIGHTNESS_PATH := "/sys/class/backlight/panel0-backlight/brightness"
 TW_OVERRIDE_SYSTEM_PROPS := "ro.build.fingerprint=ro.system.build.fingerprint;ro.build.version.incremental"
 TW_USE_SERIALNUM_PATH := "/sys/class/android_usb/android0/iSerial"
@@ -135,9 +138,3 @@ TW_H_OFFSET := -91
 TW_FRAMERATE := 90
 TW_INCLUDE_FASTBOOTD := true
 TW_INCLUDE_RESETPROP := true
-
-# PBRP Flags
-PB_TORCH_PATH := "/sys/class/leds/led:torch_0"
-PB_DISABLE_DEFAULT_TREBLE_COMP := true
-PB_DISABLE_DEFAULT_PATCH_AVB2 := true
-PB_FORCE_DD_FLASH := true
