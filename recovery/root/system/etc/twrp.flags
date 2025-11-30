@@ -1,35 +1,65 @@
-# Android fstab file.
-# The filesystem that contains the filesystem checker binary (typically /system) cannot
-# specify MF_CHECK, and must come before any filesystems that do specify MF_CHECK
+# TWRP flags for Xiaomi Lisa - Compatible with AOSP 15/16
+# Mount points and flags for TWRP/OrangeFox recovery
 
 # mount point          fstype  device                                        device2              flags
 
-/metadata              ext4    /dev/block/bootdevice/by-name/metadata                             flags=display="Metadata";backup=1;wrappedkey
-/data                  f2fs    /dev/block/bootdevice/by-name/userdata                             flags=fileencryption=aes-256-xts:aes-256-cts:v2+inlinecrypt_optimized+wrappedkey_v0,keydirectory=/metadata/vold/metadata_encryption,metadata_encryption=aes-256-xts:wrappedkey_v0
-/cache                 ext4    /dev/block/bootdevice/by-name/rescue                               flags=backup=1;wipeingui;wipeduringfactoryreset
+# Critical partitions
+/metadata              ext4    /dev/block/bootdevice/by-name/metadata                             flags=display="Metadata";backup=1;wrappedkey;encryptable=footer
 
+# Data partition - UNIVERSAL FBE for AOSP 15/16 and MIUI
+/data                  f2fs    /dev/block/bootdevice/by-name/userdata                             flags=fileencryption=::aes-256-xts:aes-256-cts:v2+wrappedkey_v0+wrappedkey_v1+wrappedkey_v2,keydirectory=/metadata/vold/metadata_encryption,metadata_encryption=aes-256-xts:wrappedkey_v0+wrappedkey_v1+wrappedkey_v2,encryptable=footer
+
+# Alternative data entry for maximum compatibility
+/data                  ext4    /dev/block/bootdevice/by-name/userdata                             flags=encryptable=footer;backup=1;canbewiped=true
+
+/cache                 ext4    /dev/block/bootdevice/by-name/cache                                flags=backup=1;wipeingui;wipeduringfactoryreset;canbewiped=true
+
+# System partitions (AOSP 15/16 support)
+/system                ext4    /dev/block/bootdevice/by-name/system                               flags=backup=1;slotselect;display="System";logical
+/system                erofs   /dev/block/bootdevice/by-name/system                               flags=backup=1;slotselect;display="System";logical
+/system_ext            ext4    /dev/block/bootdevice/by-name/system_ext                           flags=backup=1;slotselect;display="System Ext";logical
+/system_ext            erofs   /dev/block/bootdevice/by-name/system_ext                           flags=backup=1;slotselect;display="System Ext";logical
+/product               ext4    /dev/block/bootdevice/by-name/product                              flags=backup=1;slotselect;display="Product";logical
+/product               erofs   /dev/block/bootdevice/by-name/product                              flags=backup=1;slotselect;display="Product";logical
+/vendor                ext4    /dev/block/bootdevice/by-name/vendor                               flags=backup=1;slotselect;display="Vendor";logical
+/vendor                erofs   /dev/block/bootdevice/by-name/vendor                               flags=backup=1;slotselect;display="Vendor";logical
+/odm                   ext4    /dev/block/bootdevice/by-name/odm                                  flags=backup=1;slotselect;display="ODM";logical
+/odm                   erofs   /dev/block/bootdevice/by-name/odm                                  flags=backup=1;slotselect;display="ODM";logical
+
+# AOSP 15+ Dynamic Partitions (NEW)
+/vendor_dlkm           ext4    /dev/block/bootdevice/by-name/vendor_dlkm                          flags=backup=1;slotselect;display="Vendor DLKM";logical
+/vendor_dlkm           erofs   /dev/block/bootdevice/by-name/vendor_dlkm                          flags=backup=1;slotselect;display="Vendor DLKM";logical
+/odm_dlkm              ext4    /dev/block/bootdevice/by-name/odm_dlkm                             flags=backup=1;slotselect;display="ODM DLKM";logical
+/odm_dlkm              erofs   /dev/block/bootdevice/by-name/odm_dlkm                             flags=backup=1;slotselect;display="ODM DLKM";logical
+/system_dlkm           ext4    /dev/block/bootdevice/by-name/system_dlkm                          flags=backup=1;slotselect;display="System DLKM";logical
+/system_dlkm           erofs   /dev/block/bootdevice/by-name/system_dlkm                          flags=backup=1;slotselect;display="System DLKM";logical
+
+# Super partition (Dynamic partitions container)
+/super                 raw     /dev/block/bootdevice/by-name/super                                flags=display="Super";slotselect;backup=1
+
+# Xiaomi specific
 /cust                  ext4    /dev/block/bootdevice/by-name/cust                                 flags=display="Cust";backup=1;flashimg=1
 
-# Boot
-/boot                  emmc    /dev/block/bootdevice/by-name/boot                                 flags=backup=1;slotselect;flashimg=1
-/dtbo                  emmc    /dev/block/bootdevice/by-name/dtbo                                 flags=backup=1;slotselect;display="Dtbo";flashimg=1
-/vendor_boot           emmc    /dev/block/bootdevice/by-name/vendor_boot                          flags=display="vendor_boot";slotselect;backup=1;flashimg=1
-/exaid                 emmc    /dev/block/bootdevice/by-name/exaid                                flags=display="exaid";backup=1;flashimg=1
-/vbmeta                emmc    /dev/block/bootdevice/by-name/vbmeta                               flags=display="vbmeta";slotselect;backup=1;flashimg=1
-/vbmeta_system         emmc    /dev/block/bootdevice/by-name/vbmeta_system                        flags=display="vbmeta_system";slotselect;backup=1;flashimg=1
-/logo                  emmc    /dev/block/bootdevice/by-name/logo                                 flags=display="logo";backup=1;flashimg=1
-/misc                  emmc    /dev/block/bootdevice/by-name/misc                                 flags=display="misc";backup=1;flashimg=1
+# Boot partitions
+/boot                  emmc    /dev/block/bootdevice/by-name/boot                                 flags=backup=1;slotselect;flashimg=1;display="Boot"
+/dtbo                  emmc    /dev/block/bootdevice/by-name/dtbo                                 flags=backup=1;slotselect;display="DTBO";flashimg=1
+/vendor_boot           emmc    /dev/block/bootdevice/by-name/vendor_boot                          flags=display="Vendor Boot";slotselect;backup=1;flashimg=1
+/exaid                 emmc    /dev/block/bootdevice/by-name/exaid                                flags=display="Exaid";backup=1;flashimg=1
+/vbmeta                emmc    /dev/block/bootdevice/by-name/vbmeta                               flags=display="VBMeta";slotselect;backup=1;flashimg=1
+/vbmeta_system         emmc    /dev/block/bootdevice/by-name/vbmeta_system                        flags=display="VBMeta System";slotselect;backup=1;flashimg=1
+/logo                  emmc    /dev/block/bootdevice/by-name/logo                                 flags=display="Logo";backup=1;flashimg=1
+/misc                  emmc    /dev/block/bootdevice/by-name/misc                                 flags=display="Misc";backup=1;flashimg=1
 
 # Persistent Firmware & Properties
-/persist               ext4    /dev/block/bootdevice/by-name/persist                              flags=display="Persist"
+/persist               ext4    /dev/block/bootdevice/by-name/persist                              flags=display="Persist";fsflags="nosuid,nodev,barrier=1"
 /persist_image         emmc    /dev/block/bootdevice/by-name/persist                              flags=display="Persist";flashimg=1
 
 # Firmware partitions
-/bluetooth             vfat    /dev/block/bootdevice/by-name/bluetooth                            flags=display="bluetooth";slotselect;fsflags="ro,shortname=lower,uid=1002,gid=3002,dmask=227,fmask=337,context=u:object_r:bt_firmware_file:s0 wait"
-/bluetooth_image       emmc    /dev/block/bootdevice/by-name/bluetooth                            flags=display="bluetooth";slotselect;backup=1;flashimg=1
-/dsp                   vfat    /dev/block/bootdevice/by-name/dsp                                  flags=display="dsp";slotselect
-/dsp_image             emmc    /dev/block/bootdevice/by-name/dsp                                  flags=display="dsp";slotselect;backup=1;flashimg=1
-/modem                 vfat    /dev/block/bootdevice/by-name/modem                                flags=display="Modem";slotselect;fsflags="ro,shortname=lower,uid=1000,gid=1000,dmask=227,fmask=337,context=u:object_r:firmware_file:s0 wait"
+/bluetooth             vfat    /dev/block/bootdevice/by-name/bluetooth                            flags=display="Bluetooth";slotselect;fsflags="ro,shortname=lower,uid=1002,gid=3002,dmask=227,fmask=337,context=u:object_r:bt_firmware_file:s0"
+/bluetooth_image       emmc    /dev/block/bootdevice/by-name/bluetooth                            flags=display="Bluetooth";slotselect;backup=1;flashimg=1
+/dsp                   vfat    /dev/block/bootdevice/by-name/dsp                                  flags=display="DSP";slotselect;fsflags="ro,shortname=lower,uid=1001,gid=1001,dmask=227,fmask=337,context=u:object_r:adsprpc_file:s0"
+/dsp_image             emmc    /dev/block/bootdevice/by-name/dsp                                  flags=display="DSP";slotselect;backup=1;flashimg=1
+/modem                 vfat    /dev/block/bootdevice/by-name/modem                                flags=display="Modem";slotselect;fsflags="ro,shortname=lower,uid=1000,gid=1000,dmask=227,fmask=337,context=u:object_r:firmware_file:s0"
 /modem_img             emmc    /dev/block/bootdevice/by-name/modem                                flags=backup=1;display="Modem";slotselect;flashimg=1
 
 # Removable storage
