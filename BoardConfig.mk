@@ -6,8 +6,7 @@
 
 # Building with minimal manifest
 ENABLE_CPUSETS := true
-ENABLE_SCHEDBOOST := true
-TARGET_USES_64_BIT_BINDER := true
+ALLOW_MISSING_DEPENDENCIES=true
 TARGET_SUPPORTS_64_BIT_APPS := true
 
 # Device Tree Path
