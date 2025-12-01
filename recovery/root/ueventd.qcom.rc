@@ -1,0 +1,149 @@
+# Copyright (c) 2012-2015, 2017-2020, The Linux Foundation. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of The Linux Foundation nor
+#       the names of its contributors may be used to endorse or promote
+#       products derived from this software without specific prior written
+#       permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NON-INFRINGEMENT ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+# CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+# ueventd.qcom.rc - Optimized for Xiaomi Lisa recovery
+# Minimal version with essential permissions for recovery operation
+
+# Firmware directory Path
+firmware_directories /vendor/firmware_mnt/image/
+
+# Xiaomi display subsystem
+subsystem mi_display
+    devname uevent_devpath
+    dirname /dev/mi_display
+
+# Essential display and graphics
+/dev/mi_display/*         0666   root       graphics
+/dev/kgsl                 0666   system     system
+/dev/kgsl-3d0             0666   system     system
+/dev/ion                  0664   system     system
+
+# Encryption and security devices - CRITICAL for FBE
+/dev/qseecom              0660   system     drmrpc
+/dev/qce                  0660   system     drmrpc
+/dev/smcinvoke            0660   system     drmrpc
+/dev/pft                  0660   system     drmrpc
+/dev/hab                  0666   system     system
+/dev/hw_random            0600   root       root
+
+# Storage and block devices
+/dev/block/platform/soc/1d84000.ufshc/by-name/frp       0600   system     system
+/dev/block/platform/soc/1d84000.ufshc/by-name/userdata  0660   system     system
+/dev/block/platform/soc/1d84000.ufshc/by-name/metadata  0660   system     system
+/dev/block/platform/soc/1d84000.ufshc/by-name/boot      0660   system     system
+/dev/block/platform/soc/1d84000.ufshc/by-name/recovery  0660   system     system
+/dev/block/platform/soc/1d84000.ufshc/by-name/system    0660   system     system
+/dev/block/platform/soc/1d84000.ufshc/by-name/vendor    0660   system     system
+
+# Input and touch devices
+/dev/input/event*         0660   system     input
+/dev/hbtp_input           0660   system     system
+/dev/hbtp_vm              0660   system     system
+
+# USB and ADB devices
+/dev/ttyGS0               0660   system     system
+/dev/rmnet_ctrl           0660   usb        usb
+/dev/dpl_ctrl             0660   usb        usb
+
+# Keymaster and encryption services
+/dev/keymaster            0660   system     system
+/dev/gatekeeper           0660   system     system
+/dev/msm_crypto           0660   system     system
+
+# Essential SoC devices
+/dev/smd0                 0660   system     system
+/dev/smd7                 0660   bluetooth  bluetooth
+/dev/rtc0                 0660   system     system
+/dev/avtimer              0660   system     audio
+/dev/adsprpc-smd          0664   system     system
+/dev/sdsprpc-smd          0660   system     system
+
+# Recovery-specific devices
+/dev/loop*                0660   system     system
+/dev/device-mapper        0660   system     system
+/dev/dm-*                 0660   system     system
+
+# Logging and debugging
+/dev/kmsg                 0620   root       system
+/dev/ramdump*             0640   system     system
+/dev/xlog                 0660   system     audio
+
+# Power and battery
+/dev/qg                   0660  system     system
+/dev/qg_battery           0660  system     system
+/dev/vm_bms               0660   system     system
+/dev/battery_data         0660   system     system
+
+# Vibration and haptic feedback
+/dev/spidev0.0            0660   system     audio
+
+# Camera (minimal for recovery if needed)
+/dev/video*               0660   system     camera
+/dev/media*               0660   system     camera
+
+# Sensors (minimal set for recovery)
+/dev/sensors              0660   system     system
+
+# Thermal management
+/dev/msm_thermal*         0660   system     system
+
+# UFS specific
+/dev/0:0:0:49476          0600   system     system
+
+# Additional security
+/dev/msm_hw_sensor        0660   system     system
+
+# LED indicators
+/sys/class/leds/red/*     0640    system    system
+/sys/class/leds/green/*   0640    system    system
+/sys/class/leds/blue/*    0640    system    system
+
+# Backlight control
+/sys/class/backlight/panel0-backlight/* 0660 system system
+
+# Power supply
+/sys/class/power_supply/* 0660 system system
+
+# USB role switch (important for recovery USB)
+/sys/class/dual_role_usb/* 0660 system system
+
+# Thermal zones
+/sys/class/thermal/thermal_zone* 0660 system system
+
+# CPU and performance
+/sys/devices/system/cpu/* 0660 system system
+
+# Memory management
+/sys/devices/system/memory/* 0660 system system
+
+# Kernel modules loading path
+/sys/module/* 0440 root system
+
+# Additional recovery-specific permissions for TWRP/OrangeFox
+/dev/__properties__/* 0666 root root
+/dev/socket/* 0666 system system
+/dev/ashmem 0666 root root

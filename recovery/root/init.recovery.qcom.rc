@@ -1,0 +1,248 @@
+# init.recovery.qcom.rc - Enhanced for AOSP 15/16 and universal FBE support
+
+import /init.recovery.qcom_decrypt.rc
+
+on early-init
+    # Set crypto properties EARLY - CRITICAL for AOSP 15/16 FBE
+    setprop ro.crypto.state encrypted
+    setprop ro.crypto.type file
+    setprop ro.boot.crypto_state encrypted
+    setprop ro.crypto.fde_algorithm aes-256-xts
+    setprop ro.crypto.fde_sector_size 4096
+    setprop ro.crypto.volume.contents_mode aes-256-xts
+    setprop ro.crypto.volume.filenames_mode aes-256-hes
+    
+    # AOSP 15+ specific properties
+    setprop ro.product.first_api_level 31
+    setprop ro.vendor.api_level 31
+    setprop ro.boot.dynamic_partitions true
+    
+    # Create location for fs_mgr
+    mkdir /dev/fscklogs 0770 root system
+    
+    # Create metadata directory for FBE EARLY
+    mkdir /metadata/vold 0770 root system
+    mkdir /metadata/vold/metadata_encryption 0770 root system
+    
+    # Mount metadata partition for FBE keys EARLY
+    mkdir /metadata 0770 root system
+    mount ext4 /dev/block/bootdevice/by-name/metadata /metadata noatime,nosuid,nodev,discard wait,check,formattable
+
+on init
+    write /sys/class/backlight/panel0-backlight/brightness 200
+    
+    # Create symlinks for block devices
+    symlink /dev/block/bootdevice/by-name/userdata /dev/block/userdata
+    symlink /dev/block/bootdevice/by-name/metadata /dev/block/metadata
+    
+    # Create decryption working directories for AOSP 15/16
+    mkdir /data 0771 system system
+    mkdir /data/media 0770 media_rw media_rw
+    mkdir /data/misc 0770 system misc
+    mkdir /data/misc/vold 0770 root system
+    mkdir /data/unencrypted 0771 system system
+    
+    # Set up library path for Qualcomm binaries
+    export LD_LIBRARY_PATH /system/lib64:/vendor/lib64:/vendor/lib64/hw
+
+on fs
+    # Mount vendor for encryption libraries
+    mount ext4 /dev/block/bootdevice/by-name/vendor /vendor ro barrier=1 wait,slotselect
+    
+    # Mount firmware
+    mkdir /firmware
+    mount vfat /dev/block/bootdevice/by-name/modem${ro.boot.slot_suffix} /firmware ro
+    
+    # Hardware-specific permissions
+    chown system system /sys/bus/i2c/drivers/aw8624_haptic/2-005a/f0_save
+    chown system system /sys/bus/i2c/drivers/aw8624_haptic/2-005a/osc_save
+    chown system system /sys/bus/i2c/drivers/aw8624_haptic/2-005a/custom_wave
+    chmod 0666  /sys/bus/i2c/drivers/aw8624_haptic/2-005a/custom_wave
+    
+    # Wait for bootdevice and create symlink
+    wait /dev/block/platform/soc/${ro.boot.bootdevice}
+    symlink /dev/block/platform/soc/${ro.boot.bootdevice} /dev/block/bootdevice
+    
+    # QCOM security device permissions
+    chmod 0660 /dev/qseecom
+    chown system drmrpc /dev/qseecom
+    chmod 0664 /dev/ion
+    chown system system /dev/ion
+    
+    # Load exfat module
+    insmod /vendor/lib/modules/exfat.ko
+    install_keyring
+
+    # Set fscklog permission
+    chown root system /dev/fscklogs/log
+    chmod 0770 /dev/fscklogs/log
+
+on post-fs-data
+    # Ensure metadata encryption directories exist with correct permissions
+    mkdir /metadata/vold 0770 root system
+    mkdir /metadata/vold/metadata_encryption 0700 root system
+    mkdir /metadata/vold/software 0700 root system
+    
+    # Initialize FBE for AOSP 15/16
+    exec -- /system/bin/cryptfs init_user0
+
+on boot
+    # Start HAL services
+    start boot-hal-1-1
+    start health-hal-2-1
+    
+    # Start TWRP helper scripts
+    start set_permissive
+    start overrideprops
+    
+    # Start encryption-related services FIRST for AOSP 15/16
+    start qseecomd
+    start keymaster-4-1
+    start keymaster-4-0
+    start gatekeeper-1-0
+    
+    # Wait for encryption services to initialize
+    exec -- /system/bin/sleep 1
+    
+    # Start ROM detection and decryption preparation
+    start detect_rom_type
+    start prepdecrypt
+    
+    # Wait a bit for decryption setup
+    exec -- /system/bin/sleep 0.5
+    
+    # Mount userdata with decryption
+    start mount_userdata
+    
+    # Start vendor services
+    start vendor.qti.vibrator
+    start vibratorfeature-hal-1-0
+    
+    # Set USB configuration for AOSP 15+
+    setprop sys.usb.config mtp,adb
+    setprop sys.usb.configfs 1
+
+on property:twrp.modules.loaded=true
+    # Load ADSP firmware for PMIC
+    wait /sys/kernel/boot_adsp/boot
+    write /sys/kernel/boot_adsp/boot 1
+    wait /sys/class/power_supply/battery
+
+on property:ro.crypto.ready=1
+    # Encryption is ready, signal to recovery UI
+    setprop twrp.crypto.ready true
+
+on property:ro.crypto.fs_mounted=1
+    # Data partition mounted successfully
+    setprop twrp.data.mounted true
+
+# ROM type detection service
+service detect_rom_type /sbin/detect_rom.sh
+    class main
+    user root
+    group root
+    seclabel u:r:recovery:s0
+    oneshot
+
+# Keymaster 4.1 service for Qualcomm (AOSP 15/16)
+service keymaster-4-1 /vendor/bin/hw/android.hardware.keymaster@4.1-service-qti
+    class early_hal
+    user system
+    group system drmrpc
+    capabilities SYS_NICE
+    critical
+    seclabel u:r:hal_keymaster_default:s0
+    shutdown critical
+
+# Keymaster 4.0 service (fallback for older AOSP)
+service keymaster-4-0 /vendor/bin/hw/android.hardware.keymaster@4.0-service-qti
+    class early_hal
+    user system
+    group system drmrpc
+    capabilities SYS_NICE
+    critical
+    seclabel u:r:hal_keymaster_default:s0
+    shutdown critical
+
+# Gatekeeper service
+service gatekeeper-1-0 /vendor/bin/hw/android.hardware.gatekeeper@1.0-service
+    class hal
+    user system
+    group system
+    capabilities SYS_NICE
+    seclabel u:r:hal_gatekeeper_default:s0
+
+# QSEECom service - CRITICAL for Qualcomm encryption
+service qseecomd /system/bin/qseecomd
+    class main
+    user root
+    group root drmrpc
+    seclabel u:r:qseecomd:s0
+
+# Decryption preparation service
+service prepdecrypt /sbin/prepdecrypt.sh
+    class main
+    user root
+    group root
+    seclabel u:r:recovery:s0
+    oneshot
+
+# Userdata mounting service with universal FBE support
+service mount_userdata /sbin/mount_userdata.sh
+    class main
+    user root
+    group root
+    seclabel u:r:recovery:s0
+    oneshot
+
+# TWRP helper services
+service set_permissive /system/bin/set_permissive.sh
+    user root
+    group root
+    disabled
+    oneshot 
+    seclabel u:r:recovery:s0
+
+service overrideprops /system/bin/overrideprops.sh
+    user root
+    group root
+    disabled
+    oneshot
+    seclabel u:r:recovery:s0
+
+# Vendor services
+service vendor.qti.vibrator /system/bin/vendor.qti.hardware.vibrator.service
+    user root
+    group root
+    disabled
+    setenv LD_LIBRARY_PATH /vendor/lib64:/vendor/lib:/system/lib64:/system/lib:/sbin
+    seclabel u:r:recovery:s0
+
+service vibratorfeature-hal-1-0 /system/bin/vendor.xiaomi.hardware.vibratorfeature@1.0-service
+    user root
+    group root
+    disabled
+    setenv LD_LIBRARY_PATH /vendor/lib64:/vendor/lib:/system/lib64:/system/lib:/sbin
+    seclabel u:r:recovery:s0
+    onrestart restart vibratorfeature
+
+# USB controller setup
+on property:ro.boot.usbcontroller=*
+    setprop sys.usb.controller ${ro.boot.usbcontroller}
+    write /sys/class/udc/${ro.boot.usbcontroller}/device/../mode peripheral
+
+# Recovery USB configuration
+on property:sys.usb.config=*
+    write /sys/class/udc/${ro.boot.usbcontroller}/device/../mode peripheral
+
+# Handle property for USB configuration
+on property:sys.usb.configfs=1
+    setprop sys.usb.state ${sys.usb.config}
+
+# Cleanup on shutdown
+on shutdown
+    # Stop encryption services
+    stop keymaster-4-1
+    stop keymaster-4-0
+    stop gatekeeper-1-0
+    stop qseecomd

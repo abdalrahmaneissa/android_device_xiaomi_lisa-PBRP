@@ -1,0 +1,48 @@
+# init.recovery.qcom_decrypt.rc - Enhanced decryption support for Lisa
+
+on early-init
+    # Enhanced crypto properties
+    setprop ro.crypto.state encrypted
+    setprop ro.crypto.type file
+    setprop ro.boot.crypto_state encrypted
+    setprop ro.crypto.fde_algorithm aes-256-xts
+    setprop ro.crypto.fde_sector_size 4096
+    setprop ro.crypto.volume.contents_mode aes-256-xts
+    setprop ro.crypto.volume.filenames_mode aes-256-hes
+
+on init
+    # Create decryption working directory
+    mkdir /data 0771 system system
+    mkdir /data/media 0770 media_rw media_rw
+    mkdir /data/misc 0770 system misc
+    mkdir /data/misc/vold 0770 root system
+
+on fs
+    # Ensure metadata is mounted early for key access
+    wait /dev/block/bootdevice/by-name/metadata
+    mount ext4 /dev/block/bootdevice/by-name/metadata /metadata noatime,nosuid,nodev,discard wait,check
+
+on post-fs-data
+    # Set up FBE directories with proper permissions
+    mkdir /metadata/vold 0770 root system
+    mkdir /metadata/vold/metadata_encryption 0700 root system
+    mkdir /metadata/vold/software 0700 root system
+    
+    # Initialize encryption if needed
+    exec -- /system/bin/cryptfs init_user0
+
+# Decryption service
+service prepdecrypt /sbin/prepdecrypt.sh
+    class main
+    user root
+    group root
+    seclabel u:r:recovery:s0
+    oneshot
+
+# Service to handle userdata mounting with decryption
+service mount_userdata /sbin/mount_userdata.sh
+    class main
+    user root
+    group root
+    seclabel u:r:recovery:s0
+    oneshot
