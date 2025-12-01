@@ -114,14 +114,10 @@ PLATFORM_VERSION_LAST_STABLE := $(PLATFORM_VERSION)
 
 # TWRP Flags
 RECOVERY_SDCARD_ON_DATA := true
-TARGET_RECOVERY_QCOM_RTC_FIX := true
 TWRP_INCLUDE_LOGCAT := true
 TARGET_USES_LOGD := true
 TARGET_USES_MKE2FS := true
 TW_SUPPORT_INPUT_AIDL_HAPTICS := true
-TW_EXCLUDE_DEFAULT_USB_INIT := true
-TW_EXCLUDE_TWRPAPP := true
-TW_EXTRA_LANGUAGES := true
 TW_PREPARE_DATA_MEDIA_EARLY := true
 TW_USE_TOOLBOX := true
 TW_INPUT_BLACKLIST := "hbtp_vm"
@@ -129,7 +125,6 @@ TW_NO_SCREEN_TIMEOUT := true
 TW_DEFAULT_BRIGHTNESS := 600
 TW_BRIGHTNESS_PATH := "/sys/class/backlight/panel0-backlight/brightness"
 TW_OVERRIDE_SYSTEM_PROPS := "ro.build.fingerprint=ro.system.build.fingerprint;ro.build.version.incremental"
-TW_USE_SERIALNUM_PATH := "/sys/class/android_usb/android0/iSerial"
 TW_Y_OFFSET := 91
 TW_H_OFFSET := -91
 TW_FRAMERATE := 90
@@ -137,7 +132,4 @@ TW_INCLUDE_FASTBOOTD := true
 TW_INCLUDE_RESETPROP := true
 
 # PBRP Flags
-PB_TORCH_PATH := "/sys/class/leds/led:torch_0"
 PB_DISABLE_DEFAULT_TREBLE_COMP := true
-PB_DISABLE_DEFAULT_PATCH_AVB2 := true
-PB_FORCE_DD_FLASH := true
